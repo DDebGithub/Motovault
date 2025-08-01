@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget _buildVehicleCard(
       BuildContext context,
       String name,
@@ -122,7 +123,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  } // Homepage // My Vehicles Section
+  }  // Homepage // My Vehicles Section
 
   Widget _buildHomePage() {
     final theme = Theme.of(context);
@@ -194,11 +195,11 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _buildVehicleCard(context, 'Nexa Baleno', 'Online',
+                  /*_buildVehicleCard(context, 'Nexa Baleno', 'Online',
                       'Apr 24, 2024', '24,500', 15, 'assets/images/gear.jpg'),
                   const SizedBox(height: 8),
                   _buildVehicleCard(context, 'Yamaha FZ', 'Offline',
-                      'Mar 12, 2024', '12,700', 30, 'assets/images/gear.jpg'),
+                      'Mar 12, 2024', '12,700', 30, 'assets/images/gear.jpg'),*/
                 ],
               ),
             ),
@@ -239,7 +240,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  } // Homepage Items
+  } // Contains All Home Page Tab Sections
 
   Widget _buildReminderListCard(
       IconData icon,
@@ -271,6 +272,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget _getSelectedPage() {
     switch (_selectedIndex) {
       case 0:
@@ -328,7 +330,7 @@ class VehiclePage extends StatelessWidget {
   const VehiclePage({super.key});
 
 
-  Future<List<Map<String, String>>> fetchVehiclesFromDB() async {
+  Future<List<Map<String, dynamic>>> fetchVehiclesFromDB() async {
     final rows = await DBHelper.getVehicles();
 
     // DEBUG: check terminal for output
@@ -337,18 +339,7 @@ class VehiclePage extends StatelessWidget {
       print(row);
     }
 
-    return rows.map((row) {
-      return {
-        'image': (row['image'] ?? 'assets/images/gear.jpg').toString(),
-        'name': (row['name'] ?? '').toString(),
-        'status': (row['status'] ?? 'Offline').toString(),
-        'year': (row['year'] ?? '').toString(),
-        'chassis': (row['chassis'] ?? '').toString(),
-        'odo': (row['odo'] ?? '').toString(),
-        'lastService': (row['last_service'] ?? '').toString(),
-        'nextService': (row['next_service'] ?? '').toString(),
-      };
-    }).toList(); //Collects data from DB
+    return rows; //Collects data from DB
   }
 
 
@@ -400,8 +391,8 @@ class VehiclePage extends StatelessWidget {
 
           /// Fetch & Show Vehicles
           Expanded(
-            child: FutureBuilder<List<Map<String, String>>>(
-              future: fetchVehiclesFromDB(),
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: fetchVehiclesFromDB(), // your DB call
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -426,8 +417,11 @@ class VehiclePage extends StatelessWidget {
     );
   }
 
-  Widget _buildVehicleCard(Map<String, String> data, BuildContext context) {
-    return Card(
+  Widget _buildVehicleCard(Map<String, dynamic> vehicle, BuildContext context) {
+
+    print("Card data: ${vehicle['name']}");
+
+   return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -439,7 +433,7 @@ class VehiclePage extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
-                data['image']!,
+                vehicle['image'] ?? 'assets/images/gear.jpg',
                 height: 140,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -452,17 +446,17 @@ class VehiclePage extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      data['name']!,
+                      vehicle['name'] ?? '',
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 8),
                     CircleAvatar(
                       radius: 6,
-                      backgroundColor: _getStatusColor(data['status']!),
+                      backgroundColor: _getStatusColor(vehicle['status'] ?? ''),
                     ),
                   ],
                 ),
-                Text('Purchased: ${data['year']}'),
+                Text('Purchased: ${vehicle['year'] ?? ''}'),
               ],
             ),
             const SizedBox(height: 8),
@@ -473,14 +467,14 @@ class VehiclePage extends StatelessWidget {
                   children: [
                     const Icon(Icons.directions_car, size: 18),
                     const SizedBox(width: 6),
-                    Text('Chassis: ${data['chassis']}'),
+                    Text('Chassis: ${vehicle['chassis'] ?? ''}'),
                   ],
                 ),
                 Row(
                   children: [
                     const Icon(Icons.speed, size: 18),
                     const SizedBox(width: 6),
-                    Text('${data['odo']} km'),
+                    Text('${vehicle['odo'] ?? ''} km'),
                   ],
                 ),
               ],
@@ -493,14 +487,14 @@ class VehiclePage extends StatelessWidget {
                   children: [
                     const Icon(Icons.build, size: 18),
                     const SizedBox(width: 6),
-                    Text('Last: ${data['lastService']}'),
+                    Text('Last: ${vehicle['lastService'] ?? ''}'),
                   ],
                 ),
                 Row(
                   children: [
                     const Icon(Icons.calendar_today, size: 18),
                     const SizedBox(width: 6),
-                    Text('Next: ${data['nextService']}'),
+                    Text('Next: ${vehicle['nextService'] ?? ''}'),
                   ],
                 ),
               ],
@@ -510,6 +504,7 @@ class VehiclePage extends StatelessWidget {
       ),
     );
   }
+  // Section to Show Vehicle Data
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -522,7 +517,6 @@ class VehiclePage extends StatelessWidget {
     }
   }
 }
-
 // Vehicles Tab
 
 // Reminders Tab
