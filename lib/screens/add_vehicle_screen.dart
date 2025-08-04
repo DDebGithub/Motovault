@@ -120,7 +120,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         vehicleImage = File(pickedFile.path);
       });
     }
-  }
+  } // Image picker
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -132,13 +132,16 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
       }
 
       final newVehicle = Vehicle(
+        name: "",
         status: status,
         purchaseDate: purchaseYear!.toIso8601String(),
         chassisNumber: chassisController.text.trim(),
         odoReading: int.parse(odoController.text.trim()),
         lastServiceDate: lastService!.toIso8601String(),
-        imagePath: vehicleImage?.path,
+        nextServiceDate: nextService!.toIso8601String(),
+        imagePath: vehicleImage?.path ?? 'assets/images/gear.jpg',
       );
+
 
       await DBHelper.insertVehicle(newVehicle.toMap());
 
