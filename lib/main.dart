@@ -49,7 +49,7 @@ class MotoVaultApp extends StatelessWidget {
         '/onboarding2': (context) => const OnboardingScreen2(),
         '/onboarding3': (context) => const OnboardingScreen3(),
         '/onboarding4': (context) => const OnboardingScreen4(),
-        '/home': (context) => const HomePage(), // Will build later
+        '/home': (context) => const OnboardingScreen1(), // Will build later
       },
     );
   }

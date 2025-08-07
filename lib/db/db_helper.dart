@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:motovault/models/vehicle.dart';
 
 class DBHelper {
   static Future<void> insertVehicle(Map<String, dynamic> vehicle) async {
@@ -17,15 +16,19 @@ class DBHelper {
             '''
               CREATE TABLE vehicles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
                 status TEXT CHECK(status IN ('Online', 'Offline')),
+                noOfWheels TEXT CHECK(noOfWheels IN ('Two', 'Four')),
                 purchaseDate TEXT,
                 chassisNumber TEXT,
                 odoReading INTEGER,
                 lastServiceDate TEXT,
+                nextServiceDate TEXT,
                 imagePath TEXT
               );
             '''
         );
+
       },
       version: 1,
     );

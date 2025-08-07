@@ -9,8 +9,11 @@ import 'package:image_picker/image_picker.dart';
 import '../db/db_helper.dart';
 import '../models/vehicle.dart';
 
+// Controllers used for controlling Input Fields
 final TextEditingController _brandController = TextEditingController();
 final TextEditingController _modelController = TextEditingController();
+final TextEditingController nameController = TextEditingController();
+
 Future<List<String>> fetchBrands(String query) async {
   // Ideally fetch from an API or local list
   final brands = ['Maruti', 'Hyundai', 'Tata', 'Toyota', 'Honda', 'Kia', 'Mahindra'];
@@ -31,10 +34,9 @@ Future<List<String>> fetchModels(String brand) async {
 
   return brandModels[brand]?.toList() ?? [];
 }
+
 class AddVehiclePage extends StatefulWidget {
   final Function(Map<String, dynamic>) onAddVehicle;
-
-
   AddVehiclePage({super.key, required this.onAddVehicle});
 
   @override
@@ -44,13 +46,15 @@ class AddVehiclePage extends StatefulWidget {
 class _AddVehiclePageState extends State<AddVehiclePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Form fields
+  // Vehicle Addition  fields
   String? selectedBrand;
   String? selectedModel;
   String status = 'Online';
+  String noOfWheels = 'Two';
   DateTime? purchaseYear;
   final TextEditingController chassisController = TextEditingController();
   final TextEditingController odoController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   DateTime? lastService;
   DateTime? nextService;
   File? vehicleImage;
@@ -70,20 +74,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
     if (picked != null) onDatePicked(picked);
   }
 
-  Future<List<String>> fetchBrands(String query) async {
-    final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json'));
-    if (response.statusCode == 200) {
-      final List results = jsonDecode(response.body)['Results'];
-      return results
-          .map((e) => e['Make_Name'].toString())
-          .where((name) => name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    } else {
-      return [];
-    }
-  }
-
-  Future<void> _pickImage() async {
+   Future<void> _pickImage() async {
     final XFile? pickedFile = await showModalBottomSheet<XFile?>(
       context: context,
       builder: (BuildContext ctx) {
@@ -132,15 +123,17 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
       }
 
       final newVehicle = Vehicle(
-        name: "",
+        name: nameController.text.trim(),
         status: status,
         purchaseDate: purchaseYear!.toIso8601String(),
         chassisNumber: chassisController.text.trim(),
         odoReading: int.parse(odoController.text.trim()),
         lastServiceDate: lastService!.toIso8601String(),
-        nextServiceDate: nextService!.toIso8601String(),
-        imagePath: vehicleImage?.path ?? 'assets/images/gear.jpg',
-      );
+        nextServiceDate: nextService!.toIso8601String() ?? '',
+        //imagePath: 'motovault/assets/images/gear.jpg',
+        imagePath: vehicleImage?.path ?? '',
+        noOfWheels: noOfWheels,
+      ); //This section sends data to the Vehicle.dart file
 
 
       await DBHelper.insertVehicle(newVehicle.toMap());
@@ -154,13 +147,6 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   }// Data Validation
 
   @override
-  void dispose() {
-    _brandController.dispose();
-    _modelController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add a Vehicle')),
@@ -171,6 +157,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Name TextField
+              TextFormField(
+                controller: nameController,
+                keyboardType: TextInputType.name,
+                decoration: const InputDecoration(
+                  labelText: 'Vehicle Name',
+                  border: OutlineInputBorder(),
+                ),
+                style: const TextStyle(fontSize: 20),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
               // Status Picker
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Status'),
@@ -183,6 +187,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   if (val != null) {
                     setState(() {
                       status = val;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // No of Wheels
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'No. Of Wheels'),
+                items: const [
+                  DropdownMenuItem(value: 'Two', child: Text('Two')),
+                  DropdownMenuItem(value: 'Four', child: Text('Four')),
+                ],
+                value: noOfWheels,
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      noOfWheels = val;
                     });
                   }
                 },
@@ -272,7 +294,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
               const SizedBox(height: 16),
 
               // Next Service Date Picker
-              /*InkWell(
+              InkWell(
                 onTap: () => _pickDate(context, (date) {
                   setState(() {
                     nextService = date;
@@ -289,7 +311,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                         : '${nextService!.year}-${nextService!.month.toString().padLeft(2, '0')}-${nextService!.day.toString().padLeft(2, '0')}',
                   ),
                 ),
-              ),*/
+              ),
               const SizedBox(height: 16),
 
               // Image picker button + preview
